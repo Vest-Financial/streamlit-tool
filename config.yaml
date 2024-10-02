@@ -1,0 +1,4 @@
+cookie:
+  expiry_days: 30
+  key: _vest_abcdef
+  name: sales_dashboard

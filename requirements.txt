@@ -1,0 +1,8 @@
+streamlit
+streamlit-aggrid==0.3.4
+openpyxl
+streamlit-authenticator
+pyyaml
+xlsxwriter
+pandas
+streamlit_dynamic_filters
