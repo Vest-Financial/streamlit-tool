@@ -234,27 +234,13 @@ authenticator = Authenticate(
         redirect_uri='https://vest-sales-tools.streamlit.app/Cohort_Analyzer',
      )
 
-
 if __name__ == '__main__':
     # Check if the user is already authenticated
     authenticator.check_authentification()
 
-    # Display the main content only if the user is authenticated and has the correct domain
+    # Display the main content only if the user is authenticated
     if st.session_state['connected']:
-        user_email = st.session_state['user_info'].get('email')
-        if check_user_domain(user_email):
-            if st.button("Logout", key="logout_button"):
-                authenticator.logout()
-                st.rerun()
-            main()
-        else:
-            st.error("Access denied. Only users with @vestfin.com email addresses are allowed.")
+        main()
     else:
         st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>Welcome to Vest Sales Tools.<br>Please log in with your Vest Google Account.</h1>", unsafe_allow_html=True)
         authenticator.login()
-
-    # After login, check the user's email domain
-    if st.session_state['connected'] and not check_user_domain(st.session_state.get('user_email', '')):
-        st.error("Access denied. Only users with @vestfin.com email addresses are allowed.")
-        authenticator.logout()
-        st.rerun()
