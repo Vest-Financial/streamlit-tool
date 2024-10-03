@@ -160,7 +160,7 @@ authenticator = Authenticate(
         secret_credentials_path='google_credentials.json',
         cookie_name='my_cookie_name',
         cookie_key='this_is_secret',
-        redirect_uri='http://localhost:8501',
+        redirect_uri='https://vest-sales-tools.streamlit.app/',
      )
 
 if __name__ == '__main__':
