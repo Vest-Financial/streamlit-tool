@@ -447,7 +447,7 @@ authenticator = Authenticate(
     secret_credentials_path='google_credentials.json',
     cookie_name='my_cookie_name',
     cookie_key='this_is_secret',
-    redirect_uri='https://vest-sales-tools.streamlit.app/',
+    redirect_uri='https://vest-sales-tools.streamlit.app/Cohort_Analyzer',
 )
 
 if __name__ == '__main__':
