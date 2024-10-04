@@ -1,4 +1,81 @@
+credentials:
+  usernames:
+    ksood@vestfin.com:
+      email: ksood@vestfin.com
+      name: Karan Sood
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    cmortimer@vestfin.com:
+      email: cmortimer@vestfin.com
+      name: Christopher Mortimer
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    jchang@vestfin.com:
+      email: jchang@vestfin.com
+      name: Jeff Chang
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    mcapizzi@vestfin.com:
+      email: mcapizzi@vestfin.com
+      name: Michael Capizzi
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    dsullivan@vestfin.com:
+      email: dsullivan@vestfin.com
+      name: Dan Sullivan
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    lpoggi@vestfin.com:
+      email: lpoggi@vestfin.com
+      name: Luke Poggi
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    clee@vestfin.com:
+      email: clee@vestfin.com
+      name: Chris Lee
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    ksullivan@vestfin.com:
+      email: ksullivan@vestfin.com
+      name: Kevin Sullivan
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    sneamtz@vestfin.com:
+      email: sneamtz@vestfin.com
+      name: Steve Neamtz
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    amoussa@vestfin.com:
+      email: amoussa@vestfin.com
+      name: Andrew Moussa
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    cvona@vestfin.com:
+      email: cvona@vestfin.com
+      name: Cam Vona
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    sorgan@vestfin.com:
+      email: sorgan@vestfin.com
+      name: Spencer Organ
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    atorok@vestfin.com:
+      email: atorok@vestfin.com
+      name: Andrew Torok
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    wchien@vestfin.com:
+      email: wchien@vestfin.com
+      name: Wei Chien
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
+    cmccrea@vestfin.com:
+      email: cmccrea@vestfin.com
+      name: Chris McCrea
+      password: $2b$12$y4xrkSbI/rM0N0WvGRemo.R7gRXYlcgIpz40xKtAiCLSQY8UZrqA2 # To be replaced with hashed password
 cookie:
   expiry_days: 30
   key: _vest_abcdef
   name: sales_dashboard
+preauthorized:
+  emails:
+  - jchang@vestfin.com
+  - cmortimer@vestfin.com
+  - mcapizzi@vestfin.com
+  - lpoggi@vestfin.com
+  - dsullivan@vestfin.com
+  - amoussa@vestfin.com
+  - cvona@vestfin.com
+  - ksullivan@vestfin.com
+  - clee@vestfin.com
+  - sorgan@vestfin.com
+  - atorok@vestfin.com
+  - wchien@vestfin.com
+  - cmccrea@vestfin.com

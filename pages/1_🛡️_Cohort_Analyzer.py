@@ -6,9 +6,12 @@ import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder, ColumnsAutoSizeMode, AgGridTheme
 
 from pathlib import Path
+import yaml
+from yaml import SafeLoader
+import streamlit_authenticator as stauth
 import io
 from streamlit_dynamic_filters import DynamicFilters
-from streamlit_google_auth import Authenticate
+
 
 
 def format_dollar_amount(amount):
@@ -199,48 +202,70 @@ def filter_dataframe(df):
      #return df2 if len(to_filter_columns) > 0 else df2.head(100)
      return df2
 
-def main():
-     st.title('Mutual Fund Analyzer')
-     st.write("Use this tool to analyze the latest month's Broadridge mutual fund sales. Filter by cohorts, wholesalers, AUM, etc. Export results into an Excel to share with others.")
-
-     df_mf_master, df_territory_master = load_data()
-     df = process_dataframe(df_mf_master, df_territory_master)
-     df.fillna({'Client Defined Category Name':'None', 'IS Outsider':'None', 'ETF/SMA Outsider':'None', 'SP Outsider':'None', 'COM Outsider':'None', 'Vest':'None'}, inplace=True)
-
-     # Build and filter the dataframe
-     dynamic_filters = DynamicFilters(df, filters=['Client Defined Category Name','IS Outsider','ETF/SMA Outsider','SP Outsider','COM Outsider','Vest','Channel'])
-          
-     st.write("Apply filters in any order below 👇")
-                  
-     dynamic_filters.display_filters(location='columns', num_columns=2, gap='small')
-     dynamic_filters.display_df(use_container_width=True)
-
-def check_user_domain(user_email):
-    allowed_domain = 'vestfin.com'
-    return user_email.split('@')[1] == allowed_domain
-
 #---------- SETTINGS ----------
 page_title = "Mutual Fund Analyzer"
 page_icon = "🛡️"
 layout = "wide"
-st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout)
+initial_sidebar_state = 'collapsed'
+st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
 
+#-------------- USER AUTHENTICATION ----------
 
+# load config file
+file_path = Path(__file__).parents[1] / "config.yaml"
+with file_path.open("rb") as file:
+     config = yaml.load(file, Loader=SafeLoader)
 
-authenticator = Authenticate(
-        secret_credentials_path='google_credentials.json',
-        cookie_name='my_cookie_name',
-        cookie_key='this_is_secret',
-        redirect_uri='https://vest-sales-tools.streamlit.app/Cohort_Analyzer',
-     )
+authenticator = stauth.Authenticate(
+     config['credentials'],
+     config['cookie']['name'],
+     config['cookie']['key'],
+     config['cookie']['expiry_days']
+)
 
-if __name__ == '__main__':
-    # Check if the user is already authenticated
-    authenticator.check_authentification()
+try:   
+     authenticator.login()
+except Exception as e:
+     st.error("Username or password is incorrect.")
+     st.stop()
+     
+if st.session_state['authentication_status']:
+    authenticator.logout('Logout', 'sidebar')
+    st.sidebar.title(f'Welcome *{st.session_state["name"]}*')
+elif st.session_state['authentication_status'] is False:
+    st.error('Username/password is incorrect')
+elif st.session_state['authentication_status'] is None:
+    st.warning('Please enter your username and password')
 
-    # Display the main content only if the user is authenticated
-    if st.session_state['connected']:
-        main()
-    else:
-        st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>Welcome to Vest Sales Tools.<br>Please log in with your Vest Google Account.</h1>", unsafe_allow_html=True)
-        authenticator.login()
+# If authenticated, then start the app     
+if st.session_state['authentication_status']:
+
+     st.title('Mutual Fund Analyzer')
+     st.write("Use this tool to analyze the latest month's Broadridge mutual fund sales. Filter by cohorts, wholesalers, AUM, etc. Export results into an Excel to share with others.")
+     
+     #df_vest_wholesalers, df_mf_master, df_ft_wholesalers = load_data()
+     df_mf_master, df_territory_master = load_data()
+     #df = process_dataframe(df_vest_wholesalers, df_mf_master, df_ft_wholesalers)
+     df = process_dataframe(df_mf_master, df_territory_master)
+     df.fillna({'Client Defined Category Name':'None', 'IS Outsider':'None', 'ETF/SMA Outsider':'None', 'SP Outsider':'None', 'COM Outsider':'None', 'Vest':'None'}, inplace=True)
+     
+     # Build and filter the dataframe
+     #updated_df = filter_dataframe(df)
+     dynamic_filters = DynamicFilters(df, filters=['Client Defined Category Name','IS Outsider','ETF/SMA Outsider','SP Outsider','COM Outsider','Vest','Channel'])
+          
+     st.write("Apply filters in any order below 👇")
+               
+     dynamic_filters.display_filters(location='columns', num_columns=2, gap='small')
+     dynamic_filters.display_df(use_container_width=True)
+     
+     # Configure the AG-Grid options to better display the data
+     #gb = GridOptionsBuilder.from_dataframe(updated_df)
+     #gb.configure_pagination(paginationAutoPageSize=False, paginationPageSize=100)
+     #gridOptions = gb.build()
+     
+     #output = AgGrid(
+     #     updated_df,
+     #     gridOptions=gridOptions,
+     #     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
+     #     theme=AgGridTheme.ALPINE,
+     #     )

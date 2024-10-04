@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
-from streamlit_google_auth import Authenticate
+
+from pathlib import Path
+import yaml
+from yaml import SafeLoader
+import streamlit_authenticator as stauth
 
 def format_dollar_amount(amount):
     formatted_absolute_amount = '${:,.2f}'.format(abs(amount))
@@ -14,6 +18,8 @@ def load_data(url):
     df = pd.read_excel(url, engine='openpyxl', skiprows=0, usecols=[
         'Initiating Firm Name',
         'Client Defined Category Name',
+        'ETF/SMA Outsider',
+        'Channel',
         'AUM',
         'Industry AUM',
         'NNA',
@@ -22,20 +28,61 @@ def load_data(url):
     return df
 
 st.set_page_config(page_title="Industry AUM Lookup", page_icon="📈", layout="wide")
-def main():
+
+#-------------- USER AUTHENTICATION ----------
+
+# load config file
+file_path = Path(__file__).parents[1] / "config.yaml"
+with file_path.open("rb") as file:
+     config = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+     config['credentials'],
+     config['cookie']['name'],
+     config['cookie']['key'],
+     config['cookie']['expiry_days']
+)
+
+try:   
+     authenticator.login()
+except Exception as e:
+     st.error("Username or password is incorrect.")
+     st.stop()
+     
+if st.session_state['authentication_status']:
+    authenticator.logout('Logout', 'sidebar')
+    st.sidebar.title(f'Welcome *{st.session_state["name"]}*')
+elif st.session_state['authentication_status'] is False:
+    st.error('Username/password is incorrect')
+elif st.session_state['authentication_status'] is None:
+    st.warning('Please enter your username and password')
+
+# If authenticated, then start the app     
+if st.session_state['authentication_status']:
+
     # Title
     st.title("Industry AUM Lookup")
     st.write("""
     This page extracts Industry AUM from the Cohort Analyzer output. 
     """)
     st.write("""
-    !! This page takes about 30 seconds to load the first time. !!
+    !! This page takes about 30 seconds to load the first time !!
     """)
 
     # Load data
     url = st.secrets["mf_analyzer_url"]
     df = load_data(url)
-     
+    # Create a unique list of all ETF/SMA Outsider from df
+    etf_sma_outsiders = df['ETF/SMA Outsider'].dropna().unique().tolist()
+    etf_sma_outsiders.sort()
+
+    # Get user input for "ETF/SMA Outside" using a dropdown box with search functionality
+    etf_outsider = st.selectbox(
+        "Select ETF/SMA Outsider",
+        options=etf_sma_outsiders,
+        index=None,
+        placeholder="Choose an ETF/SMA Outsider...",
+    )
     # Get user input for firm names
     firm_names = st.text_area("Enter firm names (separated by new lines)")
 
@@ -51,13 +98,15 @@ def main():
             firm_order = {name.lower(): index for index, name in enumerate(firm_names)}
             
             # Filter and process the dataframe
-            filtered_df = df[df['Initiating Firm Name'].str.lower().isin([name.lower() for name in firm_names])]
+            filtered_df = df[(df['Initiating Firm Name'].str.lower().isin([name.lower() for name in firm_names])) & 
+                             (df['ETF/SMA Outsider'] == etf_outsider) &
+                             (df['Channel'] == 'RIA')]
             category_mapping = {
                 'BUIGX': 'Hedged Equity',
                 'KNGIX': 'Covered Call',
                 'ENGIX': 'Innovator',
                 'RYSE ': 'IR Hedge',
-                'BTCVX': 'Bitcoin'
+                'BTCVX': 'Crypto'
             }
             filtered_df.loc[filtered_df['Client Defined Category Name'].isin(category_mapping), 'Client Defined Category Name'] = filtered_df['Client Defined Category Name'].map(category_mapping)
             filtered_df = filtered_df.groupby(['Initiating Firm Name', 'Client Defined Category Name'])['Industry AUM'].sum().reset_index()
@@ -65,10 +114,6 @@ def main():
             
             # Pivot the dataframe
             pivoted_df = filtered_df.pivot(index='Initiating Firm Name', columns='Client Defined Category Name', values='Industry AUM')
-            
-            # Rearrange columns in the specified order
-            column_order = ['Covered Call', 'Hedged Equity', 'Innovator', 'IR Hedge', 'Bitcoin']
-            pivoted_df = pivoted_df.reindex(columns=column_order)
             # Replace the index with the case of the text inputs
             pivoted_df.index = pivoted_df.index.map(lambda x: next((name for name in firm_names if name.lower() == x.lower()), x))
             
@@ -127,7 +172,9 @@ def main():
 
     if selected_firm:
         # Filter the dataframe for the selected firm
-        firm_df = df[df['Initiating Firm Name'] == selected_firm]
+        firm_df = df[(df['Initiating Firm Name'] == selected_firm) & 
+                     (df['ETF/SMA Outsider'] == etf_outsider) & 
+                     (df['Channel'] == 'RIA')]
         
         # Apply category mapping
         category_mapping = {
@@ -150,39 +197,3 @@ def main():
         st.dataframe(firm_summary)
     else:
         st.info("Please select a firm to view its Industry AUM.")
-
-def check_user_domain(user_email):
-    allowed_domain = 'vestfin.com'
-    return user_email.split('@')[1] == allowed_domain
-
-
-authenticator = Authenticate(
-        secret_credentials_path='google_credentials.json',
-        cookie_name='my_cookie_name',
-        cookie_key='this_is_secret',
-        redirect_uri='https://vest-sales-tools.streamlit.app/',
-     )
-
-if __name__ == '__main__':
-    # Check if the user is already authenticated
-    authenticator.check_authentification()
-
-    # Display the main content only if the user is authenticated and has the correct domain
-    if st.session_state['connected']:
-        user_email = st.session_state['user_info'].get('email')
-        if check_user_domain(user_email):
-            if st.button("Logout", key="logout_button"):
-                authenticator.logout()
-                st.rerun()
-            main()
-        else:
-            st.error("Access denied. Only users with @vestfin.com email addresses are allowed.")
-    else:
-        st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>Welcome to Vest Sales Tools.<br>Please log in with your Vest Google Account.</h1>", unsafe_allow_html=True)
-        authenticator.login()
-
-    # After login, check the user's email domain
-    if st.session_state['connected'] and not check_user_domain(st.session_state.get('user_email', '')):
-        st.error("Access denied. Only users with @vestfin.com email addresses are allowed.")
-        authenticator.logout()
-        st.rerun()

@@ -6,4 +6,3 @@ pyyaml
 xlsxwriter
 pandas
 streamlit_dynamic_filters
-streamlit_google_auth

@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 import io
 import openpyxl
-from streamlit_google_auth import Authenticate
+
+from pathlib import Path
+import yaml
+from yaml import SafeLoader
+import streamlit_authenticator as stauth
 
 @st.cache_data
 def load_ticker_data(ticker_file):
@@ -37,10 +41,39 @@ def generate_holdings_summary(df_tickers, ww_file):
 
     return text_chunk
 
+#-------------- USER AUTHENTICATION ----------
 
+# load config file
+file_path = Path(__file__).parents[1] / "config.yaml"
+with file_path.open("rb") as file:
+     config = yaml.load(file, Loader=SafeLoader)
 
-def main():
+authenticator = stauth.Authenticate(
+     config['credentials'],
+     config['cookie']['name'],
+     config['cookie']['key'],
+     config['cookie']['expiry_days']
+)
+
+try:   
+     authenticator.login()
+except Exception as e:
+     st.error("Username or password is incorrect.")
+     st.stop()
+     
+if st.session_state['authentication_status']:
+    authenticator.logout('Logout', 'sidebar')
+    st.sidebar.title(f'Welcome *{st.session_state["name"]}*')
+elif st.session_state['authentication_status'] is False:
+    st.error('Username/password is incorrect')
+elif st.session_state['authentication_status'] is None:
+    st.warning('Please enter your username and password')
+
+# If authenticated, then start the app     
+if st.session_state['authentication_status']:
+
     st.title("Holdings Summary Generator")
+
     st.write("""
     Purpose: This page extracts the relevant holdings information from 13F (via Whale Wisdom exports) and outputs a text summary.
 
@@ -72,26 +105,3 @@ def main():
         st.info("Please upload the Master ETF Data Pull file first.")
     else:
         st.info("Please upload a Whalewisdom Export file to generate the summary.")
-
-def check_user_domain(user_email):
-    allowed_domain = 'vestfin.com'
-    return user_email.split('@')[1] == allowed_domain
-
-
-authenticator = Authenticate(
-        secret_credentials_path='google_credentials.json',
-        cookie_name='my_cookie_name',
-        cookie_key='this_is_secret',
-        redirect_uri='https://vest-sales-tools.streamlit.app/',
-     )
-
-if __name__ == '__main__':
-    # Check if the user is already authenticated
-    authenticator.check_authentification()
-
-    # Display the main content only if the user is authenticated
-    if st.session_state['connected']:
-        main()
-    else:
-        st.markdown("<h1 style='text-align: center; font-size: 2.5em;'>Welcome to Vest Sales Tools.<br>Please log in with your Vest Google Account.</h1>", unsafe_allow_html=True)
-        authenticator.login()
